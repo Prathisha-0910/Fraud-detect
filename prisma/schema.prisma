@@ -1,0 +1,124 @@
+// SENTRA - Amount-Agnostic Fraud Intelligence Platform
+// Prisma Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 String          @id @default(cuid())
+  name               String
+  email              String          @unique
+  passwordHash       String?
+  safetyPreferences  Json?           @default("{}")
+  riskBaseline       Float           @default(0)
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  transactions       Transaction[]
+  fraudEvents        FraudEvent[]
+  riskAssessments    RiskAssessment[]
+  guardians          Guardian[]
+
+  @@index([email])
+}
+
+model Transaction {
+  id              String         @id @default(cuid())
+  userId          String
+  amount          Float
+  payee           String
+  payeeId         String?
+  payeeIsNew      Boolean        @default(false)
+  payeeType       String         @default("individual")
+  timestamp       DateTime       @default(now())
+  transactionType String         @default("upi")
+  status          String         @default("completed")
+  // Context signals
+  suspiciousCall  Boolean        @default(false)
+  urgentMessage   Boolean        @default(false)
+  suspiciousUrl   Boolean        @default(false)
+  previousWarning Boolean        @default(false)
+  documentContext String?
+  // Risk data
+  riskScore       Float?
+  riskLevel       String?
+  isSimulated     Boolean        @default(false)
+  createdAt       DateTime       @default(now())
+  
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  riskAssessment  RiskAssessment?
+  fraudEvents     FraudEvent[]
+
+  @@index([userId])
+  @@index([timestamp])
+  @@index([userId, timestamp])
+  @@index([payee, userId])
+}
+
+model FraudEvent {
+  id            String      @id @default(cuid())
+  userId        String
+  transactionId String?
+  eventType     String      // velocity_alert, pattern_detected, intervention, guardian_alert, etc.
+  metadata      Json        @default("{}")
+  riskScore     Float       @default(0)
+  severity      String      @default("info") // info, caution, suspicious, high_risk, critical
+  timestamp     DateTime    @default(now())
+  acknowledged  Boolean     @default(false)
+  
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transaction   Transaction? @relation(fields: [transactionId], references: [id])
+
+  @@index([userId])
+  @@index([timestamp])
+  @@index([userId, timestamp])
+  @@index([eventType])
+}
+
+model RiskAssessment {
+  id              String      @id @default(cuid())
+  userId          String
+  transactionId   String      @unique
+  // Component scores
+  contextScore    Float       @default(0)
+  behaviourScore  Float       @default(0)
+  velocityScore   Float       @default(0)
+  reputationScore Float       @default(0)
+  documentScore   Float       @default(0)
+  cumulativeScore Float       @default(0)
+  // Final output
+  finalScore      Float       @default(0)
+  riskLevel       String      @default("safe")
+  confidence      Float       @default(0)
+  intervention    String      @default("allow")
+  explanation     String
+  detectedSignals Json        @default("[]")
+  createdAt       DateTime    @default(now())
+  
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transaction     Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([transactionId])
+  @@index([createdAt])
+}
+
+model Guardian {
+  id           String   @id @default(cuid())
+  userId       String
+  name         String
+  relationship String
+  contact      String
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
