@@ -1,262 +1,331 @@
-# 🛡️ SENTRA — Amount-Agnostic Fraud Intelligence Platform
+<div align="center">
 
-> **"Every Rupee Protected, Not Just the Big Ones."**
+# 🛡️ S E N T R A
+### *Next-Generation Cognitive Fraud Intelligence & Guardian Circuit-Breaker*
 
-SENTRA is a real-time, amount-agnostic fraud intelligence platform designed to protect vulnerable digital banking users — including senior citizens, first-time UPI users, and rural banking customers — from sophisticated micro-fraud, salami slicing, social engineering scams, and phishing attacks.
+<p align="center">
+  <strong>"Every Rupee Protected, Not Just the Big Ones."</strong>
+</p>
 
----
+[![Next.js 16](https://img.shields.io/badge/Next.js-16.0-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![React 19](https://img.shields.io/badge/React-19.0-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Tailwind CSS v4](https://img.shields.io/badge/Tailwind_CSS-v4.0-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![Prisma ORM](https://img.shields.io/badge/Prisma-ORM_5-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![License MIT](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
 
-## 📌 Table of Contents
+<br/>
 
-- [Overview](#-overview)
-- [The Problem Statement](#-the-problem-statement)
-- [How SENTRA Works](#-how-sentra-works)
-  - [1. Multi-Engine Fraud Intelligence Architecture](#1-multi-engine-fraud-intelligence-architecture)
-  - [2. Cumulative Risk Momentum & Pattern Recognition](#2-cumulative-risk-momentum--pattern-recognition)
-  - [3. Risk Matrix & Actionable Interventions](#3-risk-matrix--actionable-interventions)
-- [Key Features & Modules](#-key-features--modules)
-- [Who Benefits & Societal Impact](#-who-benefits--societal-impact)
-- [Technology Stack](#-technology-stack)
-- [Database & Data Models](#-database--data-models)
-- [Installation & Getting Started](#-installation--getting-started)
-- [Hackathon Demo Guide](#-hackathon-demo-guide)
-- [Future Roadmap](#-future-roadmap)
-
----
-
-## 🛡️ Overview
-
-Digital payment adoption (UPI, NetBanking, Cards) has skyrocketed. However, existing fraud detection systems in traditional banks heavily prioritize **transaction amount**. Scammers exploit this blind spot by tricking victims into making multiple **small-value payments** (e.g., ₹500, ₹1,000, ₹2,000) under high psychological pressure (coercion, fake tech support, digital arrest, QR scams).
-
-**SENTRA** shifts the paradigm from *Value-Based Detection* to *Pattern-Based Contextual Detection*. By evaluating risk based on transaction velocity, call context, message urgency, domain reputation, document NLP, and QR direction, SENTRA identifies financial scams **before** the victim loses substantial funds.
+### 🌐 Quick Navigation
+[ **[⚡ Live Overview](#-the-sentra-paradigm)** ] &nbsp;•&nbsp; 
+[ **[🧠 Architecture](#-cognitive-multi-engine-architecture)** ] &nbsp;•&nbsp; 
+[ **[📈 Risk Momentum](#-cumulative-risk-momentum-salami-slicing)** ] &nbsp;•&nbsp; 
+[ **[🔍 Scanners](#-threat-intelligence-scanners)** ] &nbsp;•&nbsp; 
+[ **[👥 Guardian System](#-guardian-family-safety-net)** ] &nbsp;•&nbsp; 
+[ **[🚀 Quick Start](#-developer-quick-start)** ] &nbsp;•&nbsp; 
+[ **[🏆 Demo Guide](#-2-minute-hackathon-demo-guide)** ]
 
 ---
 
-## 🚨 The Problem Statement
+</div>
 
-### Why Traditional Fraud Detection Fails
+<br/>
 
-1. **Amount Bias**: Traditional bank rule engines trigger alerts primarily on large transactions (e.g., > ₹50,000). A series of 4 small ₹2,000 transfers passes unnoticed under standard thresholds.
-2. **Social Engineering Vulnerability**: Scammers use fake urgency ("Your electricity will be cut", "Customs parcel block", "Refund processing") to manipulate victims into self-authorizing payments.
-3. **QR Direction Confusion**: Fraudsters trick users into scanning a QR code with the promise of *receiving* money, when in reality scanning a QR code always *deducts* money.
-4. **Lack of Guardian Safeguards**: Senior citizens often operate smartphones in isolation without real-time oversight from family members or trusted guardians.
+## 🌐 The SENTRA Paradigm
+
+Traditional banking security systems are **amount-biased** — they wake up when a user transfers ₹50,000, but sleep when a senior citizen or first-time digital banking user is coerced into sending four consecutive ₹1,500 payments. 
+
+Scammers exploit this blind spot through **social engineering, digital arrest threats, reverse-QR deception, and salami slicing**.
+
+**SENTRA** shifts the paradigm from *Value-Based Rules* to **Real-Time Cognitive Context Detection**. By correlating transaction velocity, active phone call telemetry, message urgency signals, domain reputation, and reverse-QR direction, SENTRA halts fraudulent outflows **before** life savings vanish.
+
+<br/>
+
+<table width="100%">
+<tr>
+<td width="50%" valign="top">
+
+### ❌ Traditional Banking Systems
+* **Amount Threshold Bias**: Only flags large single-value transfers (> ₹25,000–₹50,000).
+* **Blind to Psychology**: Unaware of active phone calls, coercion pressure, or urgency words.
+* **Reverse-QR Blindspot**: Confuses scanning to receive money with unauthorized debits.
+* **Isolated Operations**: Elderly victims operate with zero family safety net.
+* **Post-Mortem Resolution**: Acts *after* funds have left the banking network.
+
+</td>
+<td width="50%" valign="top">
+
+### 🛡️ The SENTRA Cognitive Engine
+* **Amount-Agnostic**: Equal vigilance on a ₹500 payment as a ₹500,000 payment.
+* **Context Telemetry**: Detects active phone calls, fake urgency, and coercive context.
+* **Direction Awareness**: Identifies reverse-QR deception before PIN authorization.
+* **Guardian Circuit-Breaker**: Automated real-time alerts to designated family members.
+* **Proactive Interventions**: Progressive cooldowns and friction modals stop fraud mid-flight.
+
+</td>
+</tr>
+</table>
 
 ---
 
-## ⚙️ How SENTRA Works
+## 🧠 Cognitive Multi-Engine Architecture
 
-### 1. Multi-Engine Fraud Intelligence Architecture
+SENTRA processes incoming payments and digital activities through **5 synchronized real-time engines**:
 
-SENTRA runs payments and activities through **5 specialized detection engines** running in real-time:
+```mermaid
+flowchart TD
+    TX["Incoming Transaction / Digital Activity"] --> DIVERGE{"Parallel Engine Dispatch"}
+
+    DIVERGE --> E1["1. Core Risk Engine<br/>(Signal Normalization & Weights)"]
+    DIVERGE --> E2["2. Velocity Pattern Engine<br/>(Rolling Window & Rapid Payees)"]
+    DIVERGE --> E3["3. Reputation Engine<br/>(Domain Age, Phish & Phone Registry)"]
+    DIVERGE --> E4["4. Document NLP Engine<br/>(Extortion & Fake Bill Analysis)"]
+    DIVERGE --> E5["5. QR Direction Engine<br/>(Debit vs Credit Payload Intent)"]
+
+    E1 --> AGG["Cumulative Risk Aggregator & Momentum Analyzer"]
+    E2 --> AGG
+    E3 --> AGG
+    E4 --> AGG
+    E5 --> AGG
+
+    AGG --> SCORE{"Unified Risk Score<br/>(0 — 100)"}
+
+    SCORE -->|0 - 25| ACT_SAFE["🟢 SAFE: Allow Seamless Transfer"]
+    SCORE -->|26 - 50| ACT_CAUTION["🟡 CAUTION: Highlight Payee Context"]
+    SCORE -->|51 - 70| ACT_SUSP["🟠 SUSPICIOUS: Mandatory Call Verification"]
+    SCORE -->|71 - 85| ACT_HIGH["🔴 HIGH RISK: 60s Psychological Cooldown"]
+    SCORE -->|86 - 100| ACT_CRIT["🚨 CRITICAL: Hard Block & Guardian Alert Dispatch"]
+```
+
+### 🧩 Engine Breakdown
+
+| Engine | File | Core Responsibilities |
+| :--- | :--- | :--- |
+| **1. Risk Score Core** | `lib/engines/risk-engine.ts` | Normalizes signals into 0–100 score, applies weighted multipliers, determines safety tier. |
+| **2. Velocity Engine** | `lib/engines/velocity-engine.ts` | Tracks payee frequency, rapid-fire transactions, and historical baseline deviations. |
+| **3. Reputation Engine** | `lib/engines/reputation-engine.ts` | Detects typosquatting, brand impersonation (`sbi-verify.com`), and flagged fraud registries. |
+| **4. Document NLP** | `lib/engines/document-engine.ts` | Analyzes uploaded notices/bills for coercive phrases (*"Pay immediately"*, *"Police warrant"*). |
+| **5. QR Direction** | `lib/engines/qr-engine.ts` | Resolves UPI intent payloads to prevent reverse-QR scams (*"Scan to receive refund"* fraud). |
+
+---
+
+## 📈 Cumulative Risk Momentum (Salami Slicing)
+
+Rather than evaluating transactions in a vacuum, SENTRA models **risk momentum**. Scammers rarely steal everything in one transaction — they test the waters with repeated micro-transfers while keeping the victim engaged on a call:
 
 ```
-                        ┌──────────────────────────────┐
-                        │   Incoming UPI / Transaction │
-                        └──────────────┬───────────────┘
-                                       │
-         ┌─────────────────────────────┼─────────────────────────────┐
-         ▼                             ▼                             ▼
-┌─────────────────┐           ┌─────────────────┐           ┌─────────────────┐
-│ Risk Score      │           │ Velocity        │           │ Reputation      │
-│ Core Engine     │           │ Pattern Engine  │           │ Domain/Tel Engine│
-└────────┬────────┘           └────────┬────────┘           └────────┬────────┘
-         │                             │                             │
-         └─────────────────────────────┼─────────────────────────────┘
-                                       │
-                        ┌──────────────┴──────────────┐
-                        ▼                             ▼
-              ┌─────────────────┐           ┌─────────────────┐
-              │ Document NLP    │           │ QR Code         │
-              │ Fraud Engine    │           │ Direction Engine│
-              └────────┬────────┘           └────────┬────────┘
-                       │                             │
-                       └──────────────┬──────────────┘
-                                      │
-                                      ▼
-                        ┌───────────────────────────┐
-                        │ Cumulative Risk Score     │
-                        │ & Human Intervention      │
-                        └───────────────────────────┘
-```
-
-* **Risk Score Core Engine (`risk-engine.ts`)**: Aggregates signals, normalizes scores (0–100), calculates confidence ratings, and triggers intervention dialogs.
-* **Velocity Pattern Engine (`velocity-engine.ts`)**: Monitors payment frequency, new payee density, and cumulative risk escalation over rolling time windows.
-* **Reputation Engine (`reputation-engine.ts`)**: Evaluates domain age, typo-squatting, banking impersonation, and known fraud phone number registries.
-* **Document NLP Engine (`document-engine.ts`)**: Scans uploaded PDFs, bills, or notices for fraudulent keyphrases ("Pay immediately", "Avoid police action", "Account suspension").
-* **QR Direction Engine (`qr-engine.ts`)**: Detects reverse-QR scams by analyzing intent vs. transaction payload (debit vs. credit misunderstanding).
-
----
-
-### 2. Cumulative Risk Momentum & Pattern Recognition
-
-Rather than assessing transactions in isolation, SENTRA remembers recent activity. If a user makes repeated payments to unfamiliar payees while on an active phone call, SENTRA escalates the score exponentially:
-
-```
-Transaction #1 (₹2,000 to New Payee)            ➔ Risk Score: 20 (SAFE / CAUTION)
-Transaction #2 (₹2,000 + Active Call Context)   ➔ Risk Score: 42 (CAUTION)
-Transaction #3 (₹2,000 + High Velocity Signal)  ➔ Risk Score: 68 (SUSPICIOUS)
-Transaction #4 (₹2,500 + Cumulative Escalation) ➔ Risk Score: 92 (CRITICAL 🚨)
-                                                   └─► SENTRA INTERVENES & ALERTS GUARDIAN
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│ SENTRA REAL-TIME RISK ESCALATION PIPELINE                                             │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                        │
+│  [Step 1]  ₹2,000 to New Payee                   ───► Risk Score: 20  [🟢 SAFE]        │
+│                                                                                        │
+│  [Step 2]  ₹2,000 + Active Call Signal Detected  ───► Risk Score: 42  [🟡 CAUTION]     │
+│                                                                                        │
+│  [Step 3]  ₹2,000 + Rapid Velocity Multiplier    ───► Risk Score: 68  [🟠 SUSPICIOUS]  │
+│                                                                                        │
+│  [Step 4]  ₹2,500 + Cumulative Momentum Limit    ───► Risk Score: 92  [🚨 CRITICAL]    │
+│                                                                                        │
+│  🛡️ ACTION TRIGGERED: Transaction Frozen • 60s Delay • Emergency Guardian Alert Sent   │
+└────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-### 3. Risk Matrix & Actionable Interventions
+## 🔍 Threat Intelligence Scanners
 
-SENTRA categorizes risk into **5 distinct levels**, enforcing progressive safety measures:
+SENTRA provides dedicated proactive scanners to protect users before money leaves their account:
 
-| Risk Score | Risk Level | System Action | User Impact |
-| :--- | :--- | :--- | :--- |
-| **0 – 25** | `SAFE` | Allow Transaction | Smooth, seamless payment |
-| **26 – 50** | `CAUTION` | Educational Prompt | Highlights new payee or unknown link |
-| **51 – 70** | `SUSPICIOUS` | Mandatory Confirmation | Forces user to confirm active call status |
-| **71 – 85** | `HIGH RISK` | 60-Second Cooldown | Delays transfer & presents fraud scenario warning |
-| **86 – 100** | `CRITICAL` | Block & Guardian Alert | Blocks transaction & notifies registered guardian |
+<table width="100%">
+<tr>
+<td width="33%" align="center">
+<h3>🌐 URL Threat Scanner</h3>
+<p>Scans links sent via SMS, WhatsApp, or email against typo-squatting algorithms and deceptive domains.</p>
+<code>app/url-scanner/page.tsx</code>
+<br/><br/>
+<b>Detects:</b><br/>
+<code>sbi-kyc-verify.net</code> vs <code>onlinesbi.sbi</code><br/>
+Homoglyphs, IP hostnames, Brand Spoofing
+</td>
 
----
+<td width="33%" align="center">
+<h3>📷 Reverse-QR Scanner</h3>
+<p>Parses raw UPI QR string payloads to detect the direction of payment flow before authorization.</p>
+<code>app/qr-scanner/page.tsx</code>
+<br/><br/>
+<b>Detects:</b><br/>
+Fake <i>"Receive ₹5,000"</i> promises<br/>
+Malicious UPI merchants, Dynamic amount injection
+</td>
 
-## ✨ Key Features & Modules
-
-1. **📊 Safety Dashboard**
-   - Live safety health index and active threat meter.
-   - Quick stats on protected transactions, intercepted threats, and active guardians.
-
-2. **⚡ Interactive Transaction Simulator**
-   - Test custom transactions with context signals (active phone call, urgent SMS, untrusted URL, new payee).
-   - Instant breakdown of multi-engine scores.
-
-3. **🔍 Multi-Threat Scanners**
-   - **URL Threat Scanner**: Detects lookalike domains (e.g., `sbi-verify-online.com` vs `sbi.co.in`).
-   - **QR Code Direction Scanner**: Warns users when scanning a payment QR that will deduct money instead of receiving a refund.
-   - **Document NLP Scanner**: Scans fake electricity bills, courier release forms, and law enforcement notices for extortion language.
-
-4. **📈 Payment Pattern & Risk Timelines**
-   - Visual trajectory charts mapping risk escalation over time.
-   - Filterable audit logs of all past warnings, checks, and interventions.
-
-5. **👥 Guardian Center (Family Safety Net)**
-   - Add trusted family members (e.g., son, daughter, relative).
-   - Automatic SMS/Email notification dispatch when a user attempts a `CRITICAL` risk transaction.
-
-6. **🎯 Hackathon Interactive Demo Mode**
-   - Includes 6 pre-configured, real-world scam walkthroughs (Digital Arrest, Repeated Small Payments, Fake Utility Bill, QR Refund Scam, Phishing SMS, Tech Support Fraud).
+<td width="33%" align="center">
+<h3>📄 Document NLP Scanner</h3>
+<p>Extracts text from fake electricity bills, courier release orders, and fake cyber-crime warrants.</p>
+<code>app/document-scanner/page.tsx</code>
+<br/><br/>
+<b>Detects:</b><br/>
+Coercive payment deadlines<br/>
+Fake official seals, Extortion patterns
+</td>
+</tr>
+</table>
 
 ---
 
-## 👥 Who Benefits & Societal Impact
+## 👥 Guardian Family Safety Net
 
-### 1. 👴 Senior Citizens & Elderly Banking Users
-* **Benefit**: Senior citizens are prime targets for fear-based social engineering ("Your SIM card will be deactivated"). SENTRA acts as an intelligent digital companion, intercepting coercions before money leaves the account.
+For elderly or vulnerable account holders, SENTRA integrates a **Guardian Circuit-Breaker System**:
 
-### 2. 📱 First-Time Digital & Rural Payment Users
-* **Benefit**: Millions of users adoption UPI daily without fully understanding payment mechanics. SENTRA prevents QR direction misunderstandings and warns against clicking phishing links in SMS messages.
+```
+ ┌────────────────┐          High Risk Detected (Score > 85)          ┌───────────────────┐
+ │ Senior Citizen │ ────────────────────────────────────────────────► │ SENTRA Platform   │
+ └────────────────┘                                                   └─────────┬─────────┘
+                                                                                │
+                                           Instant Webhook / SMS Dispatch       ▼
+                                                                      ┌───────────────────┐
+                                                                      │ Registered Family │
+                                                                      │ Guardian Device   │
+                                                                      └─────────┬─────────┘
+                                                                                │
+                                           Guardian One-Click Intervention      ▼
+                                                                      ┌───────────────────┐
+                                                                      │ [Freeze Account]  │
+                                                                      │ [Verify via Call] │
+                                                                      └───────────────────┘
+```
 
-### 3. 🛡️ Family Members & Guardians
-* **Benefit**: Gives peace of mind to adult children caring for elderly parents. Guardians receive immediate alerts if their relative is caught in a critical fraud attempt.
-
-### 4. 🏦 Banks & FinTech Platforms
-* **Benefit**: Reduces fraud chargebacks, customer dispute handling costs, and reputational damage without adding friction to legitimate high-frequency users.
-
----
-
-## 💻 Technology Stack
-
-* **Frontend**: Next.js 16 (App Router), React 19, TypeScript
-* **Styling**: Tailwind CSS v4, Framer Motion (animations), Lucide React (icons)
-* **Backend**: Next.js Server Actions & API Routes (`app/api/analyze/route.ts`)
-* **Database & ORM**: PostgreSQL with Prisma ORM v5
-* **Data Visualization**: Recharts
-* **Validation & Schemas**: Zod
-
----
-
-## 🗄️ Database & Data Models
-
-The application utilizes 5 primary data models defined in `prisma/schema.prisma`:
-
-* **`User`**: Core profile, safety preferences, baseline risk score, and relationships.
-* **`Transaction`**: Payment payload, payee metadata, context flags (`suspiciousCall`, `urgentMessage`, `suspiciousUrl`), and assigned risk scores.
-* **`RiskAssessment`**: Breakdown of component scores (`contextScore`, `velocityScore`, `reputationScore`, `documentScore`), intervention type, and confidence level.
-* **`FraudEvent`**: Audit log of security triggers, alerts, and acknowledged interventions.
-* **`Guardian`**: Contact details and activation status for trusted contacts.
+* **Zero-Friction Notification**: Direct alerts sent to registered loved ones when critical anomalies occur.
+* **Audit Trail**: Full chronological event log with context metadata in `app/guardian/page.tsx`.
+* **Safe Resumption**: Transactions can be resumed securely once the guardian verifies the recipient.
 
 ---
 
-## 🚀 Installation & Getting Started
+## 📊 Dynamic Risk & Intervention Matrix
 
-### Prerequisites
-
-* Node.js 18.x or higher
-* npm or yarn
-
-### Quick Start (Demo Mode — No Database Required)
-
-SENTRA comes with an in-memory demo engine so you can test all features instantly without configuring a database.
-
-1. Clone the repository and navigate into the project directory:
-   ```bash
-   git clone <repository-url>
-   cd techno-vit/sentra
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Run the development server:
-   ```bash
-   npm run dev
-   ```
-
-4. Open your browser and visit:
-   👉 **[http://localhost:3000](http://localhost:3000)**
+| Score Range | Tier Level | Visual Indicator | Immediate Platform Action | Target User Experience |
+| :---: | :---: | :---: | :--- | :--- |
+| **0 – 25** | `SAFE` | <kbd style="background-color: #22c55e; color: white;">&nbsp;🟢 SAFE&nbsp;</kbd> | Normal authorization pathway | Zero friction, instant payment |
+| **26 – 50** | `CAUTION` | <kbd style="background-color: #eab308; color: black;">&nbsp;🟡 CAUTION&nbsp;</kbd> | Contextual prompt displaying payee age | Educational banner highlighting unfamiliarity |
+| **51 – 70** | `SUSPICIOUS` | <kbd style="background-color: #f97316; color: white;">&nbsp;🟠 SUSPICIOUS&nbsp;</kbd> | Mandatory call status confirmation | Prompt: *"Are you currently on call with someone instructing you?"* |
+| **71 – 85** | `HIGH RISK` | <kbd style="background-color: #ef4444; color: white;">&nbsp;🔴 HIGH RISK&nbsp;</kbd> | 60-second psychological cooldown | Delay timer with verified scenario checklist |
+| **86 – 100** | `CRITICAL` | <kbd style="background-color: #7f1d1d; color: white;">&nbsp;🚨 CRITICAL&nbsp;</kbd> | Transaction blocked + Guardian alert | Hard stop. Guardian receives alert with instant freeze |
 
 ---
 
-### Full Setup (With PostgreSQL Database)
+## 💻 Technical Stack
 
-1. Create a `.env` file in the `sentra` directory:
-   ```env
-   DATABASE_URL="postgresql://username:password@localhost:5432/sentra_db"
-   ```
+<div align="center">
 
-2. Generate the Prisma Client and push database migrations:
-   ```bash
-   npm run db:generate
-   npm run db:push
-   ```
+| Layer | Technologies |
+| :--- | :--- |
+| **Frontend Framework** | `Next.js 16 (App Router)` • `React 19` • `TypeScript` |
+| **UI & Styling** | `Tailwind CSS v4` • `Framer Motion` • `Lucide React` |
+| **Data Visualization** | `Recharts (Risk trajectories & anomaly meters)` |
+| **Backend & APIs** | `Next.js Route Handlers` • `Server Actions` • `Zod Validation` |
+| **Persistence & Models** | `Prisma ORM v5` • `PostgreSQL` • In-Memory Demo Fallback |
+| **Document Processing** | `pdf-parse` • `NLP Keyword Context Matrix` |
 
-3. Start the dev server:
-   ```bash
-   npm run dev
-   ```
+</div>
 
 ---
 
-## 🎬 Hackathon Demo Guide
+## 🚀 Developer Quick Start
 
-To demonstrate SENTRA’s core innovation in under 2 minutes:
+### ⚡ 1. Clone & Install
 
-1. Open **[http://localhost:3000](http://localhost:3000)**.
-2. Click **Demo Mode** (⚡ icon on the sidebar).
-3. Select Scenario: **"Repeated Small Payment Scam"**.
-4. Click **Run Simulation Step** repeatedly:
-   - *Step 1*: ₹2,000 payment to unknown payee ➔ **Risk: 20 (Safe)**
-   - *Step 2*: ₹2,000 payment + call detected ➔ **Risk: 42 (Caution)**
-   - *Step 3*: ₹2,000 payment + high velocity ➔ **Risk: 68 (Suspicious)**
-   - *Step 4*: ₹2,500 payment + pattern threshold ➔ **Risk: 92 (CRITICAL 🚨)**
-5. Observe the **Intervention Modal** pop up, blocking the transaction and sending an automated alert to the Guardian!
+```bash
+# Clone the repository
+git clone https://github.com/Prathisha-0910/Fraud-detect.git
+
+# Navigate to the project root
+cd Fraud-detect
+
+# Install dependencies
+npm install
+```
+
+### ⚡ 2. Launch Development Server (Instant Demo Mode)
+
+SENTRA includes an **in-memory demo database fallback**, allowing instant testing without any database setup:
+
+```bash
+npm run dev
+```
+
+Open your browser at **[http://localhost:3000](http://localhost:3000)** (or `http://localhost:3001` if port 3000 is occupied).
+
+### 🗄️ 3. Optional: Configure PostgreSQL
+
+If connecting to a persistent PostgreSQL instance:
+
+```env
+# Create .env file
+DATABASE_URL="postgresql://username:password@localhost:5432/sentra_db"
+```
+
+```bash
+# Generate Prisma Client and push schema
+npx prisma generate
+npx prisma db push
+
+# Optional: Seed realistic mock transactions
+npm run seed
+```
 
 ---
 
-## 🔮 Future Roadmap
+## 🏆 2-Minute Hackathon Demo Guide
 
-- [ ] **On-Device Android Accessibility SDK**: Direct integration into banking app shells for live call state detection.
-- [ ] **Voice Stress & Audio Scam Detection**: Real-time background audio spectrum analysis to detect coercion keywords.
-- [ ] **Cross-Bank Fraud Mesh**: Distributed ledger sharing anonymized scam phone numbers and payees across financial institutions.
-- [ ] **Multi-Lingual Voice Interventions**: Audio warnings in regional Indian languages (Hindi, Tamil, Telugu, Bengali, Kannada, Marathi).
+Want to showcase SENTRA’s core value proposition to judges in 120 seconds? Follow this exact flow:
+
+<details open>
+<summary><b>▶️ Click to expand the 2-Minute Judge Walkthrough</b></summary>
+<br/>
+
+1. **Open the Simulator**: Navigate to `http://localhost:3000/simulator`.
+2. **Select the Scam Scenario**: Choose **"Repeated Small Payment Scam (Salami Slicing)"**.
+3. **Execute Transaction 1**:
+   - Send ₹2,000 to an unverified payee.
+   - Result: Risk Score `20` (Green / Safe).
+4. **Execute Transaction 2 (With Call Active)**:
+   - Toggle **"Active Phone Call"** ON. Send another ₹2,000.
+   - Result: Score climbs to `42` (Yellow / Caution prompt displayed).
+5. **Execute Transaction 3 (Velocity Build-up)**:
+   - Send another ₹2,000 within 2 minutes.
+   - Result: Score spikes to `68` (Orange / Suspicious confirmation modal triggered).
+6. **Execute Transaction 4 (The Threshold Breaker)**:
+   - Send ₹2,500 to a fourth recipient.
+   - Result: Score reaches **`92` (CRITICAL ALERT)**.
+7. **The Climax**:
+   - Transaction is **hard-blocked**.
+   - The **Guardian Circuit-Breaker** is tripped.
+   - Open `/guardian` to show the real-time alert dispatched to the user's family guardian!
+
+</details>
 
 ---
 
-*SENTRA — Protecting financial dignity through intelligent context awareness.*
+## 🗺️ Future Roadmap
+
+- [x] Multi-engine contextual risk scoring
+- [x] QR code reverse-intent direction analyzer
+- [x] Document NLP extortion & fake bill scanner
+- [x] Guardian circuit-breaker and emergency alert pipeline
+- [ ] **Android Accessibility Service Shell**: Native detection of active call state without banking app invasiveness.
+- [ ] **Voice Stress & Audio Spectral Analysis**: Background audio AI to detect coercion keywords in real-time.
+- [ ] **Cross-Bank Federated Threat Mesh**: Decentralized ledger sharing flagged scam accounts across participating banks.
+- [ ] **Regional Language Voice Alerts**: Spoken warnings in Hindi, Tamil, Telugu, Bengali, Marathi, and Kannada.
+
+---
+
+<div align="center">
+
+### 🛡️ SENTRA — Safeguarding Every Rupee
+
+Built with ❤️ for digital banking safety, vulnerable citizens, and fraud prevention.
+
+[![GitHub Stars](https://img.shields.io/github/stars/Prathisha-0910/Fraud-detect?style=social)](https://github.com/Prathisha-0910/Fraud-detect)
+[![GitHub Forks](https://img.shields.io/github/forks/Prathisha-0910/Fraud-detect?style=social)](https://github.com/Prathisha-0910/Fraud-detect)
+
+</div>
