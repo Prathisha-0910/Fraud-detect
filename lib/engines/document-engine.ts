@@ -144,8 +144,59 @@ export class DocumentEngine {
   }
 
   /**
-   * Simulate OCR extraction (mock for MVP)
-   * Returns demo content based on filename/type
+   * Real text extraction from an uploaded file.
+   * - Images  -> OCR in-browser via Tesseract.js
+   * - PDFs    -> sent to /api/document/extract-pdf (pdf-parse runs server-side;
+   *              pdf-parse is a Node-only library and cannot run in the browser)
+   * - Plain text files -> read directly
+   */
+  static async extractText(file: File): Promise<string> {
+    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')
+    const isImage = file.type.startsWith('image/')
+
+    if (isPdf) {
+      const buffer = await file.arrayBuffer()
+      const res = await fetch('/api/document/extract-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/pdf' },
+        body: buffer,
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.error ?? 'Failed to extract text from this PDF.')
+      }
+      const { text } = await res.json()
+      if (!text || !text.trim()) {
+        throw new Error('No readable text found in this PDF. It may be a scanned image — try uploading it as an image instead.')
+      }
+      return text
+    }
+
+    if (isImage) {
+      // Dynamic import: tesseract.js is client-only and fairly heavy, so it's
+      // only pulled in when someone actually uploads an image.
+      const Tesseract = await import('tesseract.js')
+      const { data } = await Tesseract.recognize(file, 'eng')
+      if (!data.text || !data.text.trim()) {
+        throw new Error("Couldn't read any text from this image. Try a clearer photo or a higher-resolution scan.")
+      }
+      return data.text
+    }
+
+    // .txt / .doc-ish fallback: attempt a direct text read
+    try {
+      const text = await file.text()
+      if (!text.trim()) throw new Error('empty')
+      return text
+    } catch {
+      throw new Error('Unsupported file type. Please upload an image (JPG/PNG) or a PDF.')
+    }
+  }
+
+  /**
+   * @deprecated Use extractText() for real uploads. This is kept only for
+   * the "Try demo documents" buttons, which call getDemoText() directly and
+   * don't use this method — retained for backward compatibility only.
    */
   static async simulateOCR(file: File): Promise<string> {
     // Simulate processing delay

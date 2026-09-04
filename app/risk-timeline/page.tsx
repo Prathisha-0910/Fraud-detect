@@ -1,13 +1,31 @@
 'use client'
 
-import { useState } from 'react'
-import { DEMO_TIMELINE_EVENTS } from '@/lib/demo-data'
+import { useState, useMemo } from 'react'
+import { useLivePoll } from '@/lib/hooks/useLivePoll'
 import { getRiskLevelConfig, formatCurrency, formatRelativeTime } from '@/lib/utils'
 import { RiskLevel } from '@/types'
 import { Clock, Filter, ShoppingCart, UserPlus, Phone, AlertTriangle, ArrowUpRight, Shield } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 type FilterType = 'all' | 'today' | '24h' | '7d'
+
+interface TransactionItem {
+  id: string
+  amount: number
+  payee: string
+  payeeIsNew: boolean
+  timestamp: string
+  riskScore: number
+  riskLevel: RiskLevel
+  status: string
+  pausedUntil: string | null
+  suspiciousCall: boolean
+  urgentMessage: boolean
+  riskAssessment?: {
+    intervention: string
+    explanation: string
+  }
+}
 
 const EVENT_TYPE_CONFIG = {
   payment: { icon: ArrowUpRight, label: 'Payment', color: 'text-blue-500', bg: 'bg-blue-50' },
@@ -17,65 +35,86 @@ const EVENT_TYPE_CONFIG = {
   safe_payment: { icon: ShoppingCart, label: 'Safe Payment', color: 'text-emerald-500', bg: 'bg-emerald-50' },
 }
 
-const ALL_EVENTS = [
-  ...DEMO_TIMELINE_EVENTS,
-  {
-    id: 'safe_1',
-    type: 'safe_payment',
-    amount: 1847,
-    payee: 'BigMart Superstore',
-    timestamp: new Date(Date.now() - 2 * 3600000),
-    riskScore: 8,
-    riskLevel: 'safe' as RiskLevel,
-    description: 'Regular grocery purchase',
-  },
-  {
-    id: 'safe_2',
-    type: 'safe_payment',
-    amount: 599,
-    payee: 'Netflix India',
-    timestamp: new Date(Date.now() - 24 * 3600000),
-    riskScore: 5,
-    riskLevel: 'safe' as RiskLevel,
-    description: 'Monthly subscription',
-  },
-  {
-    id: 'safe_3',
-    type: 'safe_payment',
-    amount: 2200,
-    payee: 'BESCOM (Electricity)',
-    timestamp: new Date(Date.now() - 48 * 3600000),
-    riskScore: 3,
-    riskLevel: 'safe' as RiskLevel,
-    description: 'Utility bill',
-  },
-].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
-
 export default function RiskTimelinePage() {
   const [filter, setFilter] = useState<FilterType>('all')
   const [hoveredId, setHoveredId] = useState<string | null>(null)
 
-  const now = new Date()
-  const filteredEvents = ALL_EVENTS.filter(event => {
-    const age = now.getTime() - event.timestamp.getTime()
-    if (filter === 'today') return age < 86400000 && new Date(event.timestamp).getDate() === new Date().getDate()
-    if (filter === '24h') return age < 86400000
-    if (filter === '7d') return age < 7 * 86400000
-    return true
-  })
+  const { data: txnsData } = useLivePoll<{
+    success: boolean
+    count: number
+    transactions: TransactionItem[]
+  }>('/api/transactions?userId=demo-user&limit=50', 5000)
 
-  const stats = {
+  const rawTransactions = useMemo(() => txnsData?.transactions ?? [], [txnsData])
+
+  const allEvents = useMemo(() => {
+    return rawTransactions.map(t => {
+      let type: 'intervention' | 'context' | 'new_contact' | 'safe_payment' | 'payment' = 'payment'
+
+      if (t.status === 'paused' || t.status === 'blocked') {
+        type = 'intervention'
+      } else if (t.suspiciousCall || t.urgentMessage) {
+        type = 'context'
+      } else if (t.payeeIsNew) {
+        type = 'new_contact'
+      } else if (t.riskLevel === 'safe') {
+        type = 'safe_payment'
+      }
+
+      const description =
+        t.riskAssessment?.explanation ||
+        (t.status === 'paused'
+          ? 'Transaction paused under safety cooldown'
+          : t.status === 'blocked'
+          ? 'Transaction blocked; guardian alert dispatched'
+          : t.suspiciousCall
+          ? 'Payment made during suspicious incoming call'
+          : t.payeeIsNew
+          ? 'Payment to newly registered recipient'
+          : 'Standard transfer')
+
+      return {
+        id: t.id,
+        type,
+        amount: t.amount,
+        payee: t.payee,
+        timestamp: new Date(t.timestamp),
+        riskScore: t.riskScore ?? 0,
+        riskLevel: t.riskLevel ?? 'safe',
+        description,
+      }
+    })
+  }, [rawTransactions])
+
+  const filteredEvents = useMemo(() => {
+    const now = Date.now()
+    return allEvents.filter(event => {
+      const age = now - event.timestamp.getTime()
+      if (filter === 'today') return age < 86400000 && event.timestamp.getDate() === new Date().getDate()
+      if (filter === '24h') return age < 86400000
+      if (filter === '7d') return age < 7 * 86400000
+      return true
+    })
+  }, [allEvents, filter])
+
+  const stats = useMemo(() => ({
     total: filteredEvents.length,
     safe: filteredEvents.filter(e => e.riskLevel === 'safe').length,
     suspicious: filteredEvents.filter(e => ['suspicious', 'high_risk', 'critical'].includes(e.riskLevel)).length,
     interventions: filteredEvents.filter(e => e.type === 'intervention').length,
-  }
+  }), [filteredEvents])
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-slide-in">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800">Risk Timeline</h1>
-        <p className="text-slate-500 mt-0.5">Chronological view of all financial activity and SENTRA events</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800">Risk Timeline</h1>
+          <p className="text-slate-500 mt-0.5">Chronological view of all financial activity and SENTRA events</p>
+        </div>
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          Live Polling
+        </div>
       </div>
 
       {/* Stats */}
@@ -122,13 +161,13 @@ export default function RiskTimelinePage() {
             {filteredEvents.length === 0 && (
               <div className="text-center py-10 text-slate-400">
                 <Clock className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">No events in this time range</p>
+                <p className="text-sm">No events recorded in this time range</p>
               </div>
             )}
 
-            {filteredEvents.map((event, index) => {
+            {filteredEvents.map(event => {
               const riskConfig = getRiskLevelConfig(event.riskLevel)
-              const typeConfig = EVENT_TYPE_CONFIG[event.type as keyof typeof EVENT_TYPE_CONFIG] ?? EVENT_TYPE_CONFIG.payment
+              const typeConfig = EVENT_TYPE_CONFIG[event.type] ?? EVENT_TYPE_CONFIG.payment
               const Icon = typeConfig.icon
               const isIntervention = event.type === 'intervention'
 
@@ -136,7 +175,7 @@ export default function RiskTimelinePage() {
                 <div
                   key={event.id}
                   className={cn(
-                    'relative flex gap-4 pl-12',
+                    'relative flex gap-4 pl-12 transition-all',
                     hoveredId === event.id && 'opacity-100',
                     isIntervention && 'z-10'
                   )}
@@ -160,7 +199,7 @@ export default function RiskTimelinePage() {
                     className={cn(
                       'flex-1 rounded-xl border p-3 transition-all duration-150',
                       isIntervention
-                        ? 'border-red-300 bg-red-50'
+                        ? 'border-red-300 bg-red-50 shadow-sm'
                         : hoveredId === event.id
                         ? cn(riskConfig.border, riskConfig.bg)
                         : 'border-slate-200 bg-white hover:border-slate-300'

@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
+import { prisma } from '@/lib/db'
 import { SentraRiskEngine } from '@/lib/engines/risk-engine'
 import { VelocityEngine } from '@/lib/engines/velocity-engine'
 import { ReputationEngine } from '@/lib/engines/reputation-engine'
-import { DEMO_SUSPICIOUS_TRANSACTIONS } from '@/lib/demo-data'
+import { notifyGuardians } from '@/lib/notify-guardians'
 
 const AnalyzeSchema = z.object({
   userId: z.string().min(1),
@@ -35,13 +36,31 @@ export async function POST(request: NextRequest) {
     const input = parsed.data
     const engine = new SentraRiskEngine()
 
-    // Use demo transactions for velocity analysis context
-    const recentTransactions = DEMO_SUSPICIOUS_TRANSACTIONS.map(t => ({
+    // Ensure user exists in database to prevent foreign key errors
+    await prisma.user.upsert({
+      where: { id: input.userId },
+      update: {},
+      create: {
+        id: input.userId,
+        name: input.userId === 'demo-user' ? 'Priya Sharma' : input.userId,
+        email: `${input.userId}@sentra.demo`,
+        riskBaseline: 10,
+      },
+    })
+
+    // Fetch real recent transactions for this user
+    const recentDbRows = await prisma.transaction.findMany({
+      where: { userId: input.userId },
+      orderBy: { timestamp: 'desc' },
+      take: 20,
+    })
+
+    const recentTransactions = recentDbRows.map(t => ({
       amount: t.amount,
       payee: t.payee,
       payeeIsNew: t.payeeIsNew,
       timestamp: t.timestamp,
-      riskScore: t.riskScore,
+      riskScore: t.riskScore ?? 0,
       suspiciousCall: t.suspiciousCall,
       urgentMessage: t.urgentMessage,
     }))
@@ -60,7 +79,7 @@ export async function POST(request: NextRequest) {
       ? ReputationEngine.analyze({ url: input.url, phone: input.phone })
       : undefined
 
-    // Calculate cumulative context from recent history
+    // Calculate cumulative context from real recent history
     const recentScores = recentTransactions
       .filter(t => t.payee.toLowerCase() === input.payee.toLowerCase())
       .map(t => t.riskScore ?? 0)
@@ -90,19 +109,111 @@ export async function POST(request: NextRequest) {
       reputationAnalysis
     )
 
-    // Return assessment
+    // Derive status based on intervention
+    let status = 'completed'
+    let pausedUntil: Date | null = null
+
+    if (assessment.intervention === 'pause') {
+      status = 'paused'
+      pausedUntil = new Date(Date.now() + 60_000) // 60-second cooldown
+    } else if (assessment.intervention === 'guardian_review') {
+      status = 'blocked'
+    } else if (assessment.intervention === 'educate' || assessment.intervention === 'confirm') {
+      status = 'pending'
+    }
+
+    // 1. Persist Transaction
+    const transaction = await prisma.transaction.create({
+      data: {
+        userId: input.userId,
+        amount: input.amount,
+        payee: input.payee,
+        payeeIsNew: input.payeeIsNew,
+        payeeType: input.payeeType,
+        timestamp: new Date(),
+        status,
+        pausedUntil,
+        suspiciousCall: input.suspiciousCall,
+        urgentMessage: input.urgentMessage,
+        suspiciousUrl: input.suspiciousUrl,
+        previousWarning: input.previousWarning,
+        documentContext: input.documentContext,
+        riskScore: assessment.finalScore,
+        riskLevel: assessment.riskLevel,
+        isSimulated: true,
+      },
+    })
+
+    // 2. Persist RiskAssessment
+    await prisma.riskAssessment.create({
+      data: {
+        userId: input.userId,
+        transactionId: transaction.id,
+        contextScore: assessment.componentScores.contextScore,
+        behaviourScore: assessment.componentScores.behaviourScore,
+        velocityScore: assessment.componentScores.velocityScore,
+        reputationScore: assessment.componentScores.reputationScore,
+        documentScore: assessment.componentScores.documentScore,
+        cumulativeScore: assessment.componentScores.cumulativeScore,
+        finalScore: assessment.finalScore,
+        riskLevel: assessment.riskLevel,
+        confidence: assessment.confidence,
+        intervention: assessment.intervention,
+        explanation: assessment.explanation,
+        detectedSignals: JSON.stringify(assessment.detectedSignals),
+      },
+    })
+
+    // 3. Persist FraudEvents if suspicious, high_risk, or critical
+    if (
+      assessment.riskLevel === 'suspicious' ||
+      assessment.riskLevel === 'high_risk' ||
+      assessment.riskLevel === 'critical'
+    ) {
+      for (const signal of assessment.detectedSignals) {
+        await prisma.fraudEvent.create({
+          data: {
+            userId: input.userId,
+            transactionId: transaction.id,
+            eventType: signal.type,
+            description: signal.description,
+            riskScore: assessment.finalScore,
+            severity: signal.severity,
+            timestamp: new Date(),
+            acknowledged: false,
+            metadata: JSON.stringify({
+              signalScore: signal.score,
+              amount: input.amount,
+              payee: input.payee,
+              intervention: assessment.intervention,
+            }),
+          },
+        })
+      }
+    }
+
+    // 4. Trigger Guardian Notification on critical risk
+    if (assessment.riskLevel === 'critical') {
+      await notifyGuardians(input.userId, {
+        id: transaction.id,
+        amount: input.amount,
+        payee: input.payee,
+        riskScore: assessment.finalScore,
+      })
+    }
+
+    // Return assessment with real persisted transaction ID & metadata
     return NextResponse.json({
       success: true,
       assessment,
       transaction: {
-        id: `txn_${Date.now()}`,
-        amount: input.amount,
-        payee: input.payee,
-        payeeIsNew: input.payeeIsNew,
-        timestamp: new Date().toISOString(),
-        status: assessment.intervention === 'pause' || assessment.intervention === 'guardian_review'
-          ? 'paused'
-          : 'completed',
+        id: transaction.id,
+        amount: transaction.amount,
+        payee: transaction.payee,
+        payeeIsNew: transaction.payeeIsNew,
+        timestamp: transaction.timestamp.toISOString(),
+        status: transaction.status,
+        pausedUntil: transaction.pausedUntil?.toISOString() ?? null,
       },
     })
   } catch (error) {

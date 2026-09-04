@@ -6,7 +6,7 @@ import { FraudExplanationPanel } from '@/components/sentra/FraudExplanationPanel
 import { InterventionModal } from '@/components/sentra/InterventionModal'
 import { RiskBreakdownChart } from '@/components/sentra/RiskBreakdownChart'
 import { RiskAssessmentResult } from '@/types'
-import { formatCurrency, getRiskLevelConfig } from '@/lib/utils'
+import { formatCurrency, getRiskLevelConfig, looksLikeUrlAttempt, isValidIndianPhone } from '@/lib/utils'
 import {
   Send,
   Shield,
@@ -66,14 +66,35 @@ export default function SimulatorPage() {
   } | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [urlError, setUrlError] = useState<string | null>(null)
+  const [phoneError, setPhoneError] = useState<string | null>(null)
 
   const updateForm = (field: keyof FormState, value: boolean | string) => {
     setForm(prev => ({ ...prev, [field]: value }))
+    if (field === 'url') setUrlError(null)
+    if (field === 'phone') setPhoneError(null)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!form.amount || !form.payee) return
+
+    // Only validate the optional fields if the user actually entered
+    // something in them — an empty field is fine, a wrong one is not.
+    let hasValidationError = false
+    if (form.url.trim() && !looksLikeUrlAttempt(form.url)) {
+      setUrlError("That doesn't look like a URL. Enter a real web address, e.g. example.com, or leave it blank.")
+      hasValidationError = true
+    } else {
+      setUrlError(null)
+    }
+    if (form.phone.trim() && !isValidIndianPhone(form.phone)) {
+      setPhoneError('Enter a valid 10-digit mobile number (e.g. 98765 43210), or leave it blank.')
+      hasValidationError = true
+    } else {
+      setPhoneError(null)
+    }
+    if (hasValidationError) return
 
     setLoading(true)
     setError(null)
@@ -268,8 +289,17 @@ export default function SimulatorPage() {
                   value={form.url}
                   onChange={e => updateForm('url', e.target.value)}
                   placeholder="https://example.com..."
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={cn(
+                    'w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:border-transparent',
+                    urlError ? 'border-red-300 focus:ring-red-400' : 'border-slate-200 focus:ring-blue-500'
+                  )}
                 />
+                {urlError && (
+                  <p className="text-xs text-red-600 mt-1 flex items-center gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
+                    {urlError}
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Contact Phone Number</label>
@@ -278,8 +308,17 @@ export default function SimulatorPage() {
                   value={form.phone}
                   onChange={e => updateForm('phone', e.target.value)}
                   placeholder="+91 98765 43210"
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={cn(
+                    'w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:border-transparent',
+                    phoneError ? 'border-red-300 focus:ring-red-400' : 'border-slate-200 focus:ring-blue-500'
+                  )}
                 />
+                {phoneError && (
+                  <p className="text-xs text-red-600 mt-1 flex items-center gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
+                    {phoneError}
+                  </p>
+                )}
               </div>
             </div>
           </div>

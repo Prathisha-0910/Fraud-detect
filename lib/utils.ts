@@ -120,3 +120,27 @@ export function getGreeting(): string {
 export function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max)
 }
+
+/**
+ * True only if the input at least looks like someone attempted a URL —
+ * has a scheme, or is domain-shaped (label.label...). Bare words like "m"
+ * or "hello" fail this; a broken-but-attempted URL (e.g. "http://") passes
+ * it and is left to the reputation engine to score as suspicious/unverifiable.
+ */
+export function looksLikeUrlAttempt(input: string): boolean {
+  const trimmed = input.trim()
+  if (trimmed.length < 4) return false
+  if (/\s/.test(trimmed)) return false
+  if (/^https?:\/\//i.test(trimmed)) return true
+  return /^[a-z0-9-]+(\.[a-z0-9-]+)+(\/.*)?$/i.test(trimmed)
+}
+
+/**
+ * Validates an Indian mobile number: optional +91/91/0 prefix, then 10
+ * digits starting with 6-9. Spaces and hyphens are allowed for readability
+ * and stripped before checking.
+ */
+export function isValidIndianPhone(input: string): boolean {
+  const digitsOnly = input.trim().replace(/[\s-]/g, '')
+  return /^(\+?91|0)?[6-9]\d{9}$/.test(digitsOnly)
+}

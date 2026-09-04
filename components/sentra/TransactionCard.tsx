@@ -1,8 +1,9 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { cn, getRiskLevelConfig, formatCurrency, formatRelativeTime } from '@/lib/utils'
 import { RiskLevel } from '@/types'
-import { ArrowUpRight, Clock, User, AlertCircle } from 'lucide-react'
+import { ArrowUpRight, Clock, User, AlertCircle, Play, Check, Loader2 } from 'lucide-react'
 
 interface TransactionCardProps {
   id: string
@@ -13,9 +14,11 @@ interface TransactionCardProps {
   riskScore?: number
   riskLevel?: RiskLevel
   status?: string
+  pausedUntil?: Date | string | null
   suspiciousCall?: boolean
   urgentMessage?: boolean
   onClick?: () => void
+  onResumed?: () => void
   className?: string
   compact?: boolean
 }
@@ -28,13 +31,71 @@ export function TransactionCard({
   timestamp,
   riskScore,
   riskLevel = 'safe',
-  status = 'completed',
+  status: initialStatus = 'completed',
+  pausedUntil,
   suspiciousCall,
   urgentMessage,
   onClick,
+  onResumed,
   className,
   compact = false,
 }: TransactionCardProps) {
+  const [currentStatus, setCurrentStatus] = useState(initialStatus)
+  const [remainingSec, setRemainingSec] = useState<number>(() => {
+    if (initialStatus !== 'paused' || !pausedUntil) return 0
+    const diff = Math.ceil((new Date(pausedUntil).getTime() - Date.now()) / 1000)
+    return Math.max(0, diff)
+  })
+  const [isResuming, setIsResuming] = useState(false)
+
+  // Sync status if props change
+  useEffect(() => {
+    setCurrentStatus(initialStatus)
+  }, [initialStatus])
+
+  // Cooldown countdown timer
+  useEffect(() => {
+    if (currentStatus !== 'paused') return
+
+    const updateTimer = () => {
+      if (!pausedUntil) {
+        setRemainingSec(0)
+        return
+      }
+      const diff = Math.ceil((new Date(pausedUntil).getTime() - Date.now()) / 1000)
+      if (diff <= 0) {
+        setRemainingSec(0)
+      } else {
+        setRemainingSec(diff)
+      }
+    }
+
+    updateTimer()
+    const timer = setInterval(updateTimer, 1000)
+    return () => clearInterval(timer)
+  }, [currentStatus, pausedUntil])
+
+  const handleResume = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setIsResuming(true)
+    try {
+      const res = await fetch(`/api/transactions/${id}/resume`, {
+        method: 'POST',
+      })
+      if (res.ok) {
+        setCurrentStatus('completed')
+        onResumed?.()
+      } else {
+        const data = await res.json()
+        console.warn('[TransactionCard] Resume not allowed yet:', data.message)
+      }
+    } catch (err) {
+      console.error('[TransactionCard] Error resuming transaction:', err)
+    } finally {
+      setIsResuming(false)
+    }
+  }
+
   const config = getRiskLevelConfig(riskLevel)
   const hasRisk = (riskScore ?? 0) > 25
 
@@ -76,7 +137,7 @@ export function TransactionCard({
           </div>
         </div>
 
-        {/* Right: Amount + Risk */}
+        {/* Right: Amount + Risk + Status */}
         <div className="flex flex-col items-end gap-1 flex-shrink-0">
           <div className="flex items-center gap-1">
             <ArrowUpRight className="w-3.5 h-3.5 text-slate-500" />
@@ -90,9 +151,33 @@ export function TransactionCard({
               </span>
             </div>
           )}
-          {status === 'paused' && (
-            <span className="text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-medium">
-              Paused
+          {currentStatus === 'paused' && (
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className="text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-medium flex items-center gap-1">
+                {remainingSec > 0 ? `Paused (${remainingSec}s)` : 'Cooldown Ready'}
+              </span>
+              {remainingSec === 0 && (
+                <button
+                  type="button"
+                  onClick={handleResume}
+                  disabled={isResuming}
+                  className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-2 py-0.5 rounded shadow-sm flex items-center gap-1 transition-colors"
+                >
+                  {isResuming ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <>
+                      <Play className="w-2.5 h-2.5 fill-current" />
+                      Resume
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          )}
+          {currentStatus === 'blocked' && (
+            <span className="text-xs bg-rose-200 text-rose-800 px-1.5 py-0.5 rounded font-medium">
+              Blocked
             </span>
           )}
         </div>

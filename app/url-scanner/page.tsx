@@ -1,12 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { ScanUpload } from '@/components/sentra/ScanUpload'
 import { RiskScoreCard } from '@/components/sentra/RiskScoreCard'
 import { FraudSignalCard } from '@/components/sentra/FraudSignalCard'
 import { ReputationEngine } from '@/lib/engines/reputation-engine'
 import { URLAnalysisResult } from '@/types'
-import { getRiskLevelConfig } from '@/lib/utils'
+import { getRiskLevelConfig, looksLikeUrlAttempt } from '@/lib/utils'
 import { Link2, Shield, AlertTriangle, CheckCircle, Loader2, ExternalLink, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -21,10 +20,19 @@ export default function URLScannerPage() {
   const [url, setUrl] = useState('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<URLAnalysisResult | null>(null)
+  const [inputError, setInputError] = useState<string | null>(null)
 
   const handleAnalyze = async (urlToAnalyze?: string) => {
     const target = urlToAnalyze ?? url
     if (!target.trim()) return
+
+    if (!looksLikeUrlAttempt(target)) {
+      setResult(null)
+      setInputError("That doesn't look like a URL. Enter a web address, e.g. example.com or https://example.com")
+      return
+    }
+
+    setInputError(null)
     setLoading(true)
     setResult(null)
     await new Promise(r => setTimeout(r, 800))
@@ -56,9 +64,12 @@ export default function URLScannerPage() {
             <input
               type="url"
               value={url}
-              onChange={e => setUrl(e.target.value)}
+              onChange={e => { setUrl(e.target.value); if (inputError) setInputError(null) }}
               placeholder="Paste a URL to analyze..."
-              className="w-full border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={cn(
+                'w-full border rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:border-transparent',
+                inputError ? 'border-red-300 focus:ring-red-400' : 'border-slate-200 focus:ring-blue-500'
+              )}
               onKeyDown={e => e.key === 'Enter' && handleAnalyze()}
             />
           </div>
@@ -71,6 +82,13 @@ export default function URLScannerPage() {
             Scan
           </button>
         </div>
+
+        {inputError && (
+          <p className="text-xs text-red-600 mt-2 flex items-center gap-1.5">
+            <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
+            {inputError}
+          </p>
+        )}
 
         {/* Demo URLs */}
         <div className="mt-4">

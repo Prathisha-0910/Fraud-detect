@@ -27,6 +27,7 @@ export default function DocumentScannerPage() {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<DocumentAnalysis | null>(null)
   const [extractedText, setExtractedText] = useState('')
+  const [extractError, setExtractError] = useState<string | null>(null)
 
   const analyzeText = async (text: string) => {
     if (!text.trim()) return
@@ -42,11 +43,18 @@ export default function DocumentScannerPage() {
   const handleFile = async (file: File) => {
     setLoading(true)
     setResult(null)
-    const text = await DocumentEngine.simulateOCR(file)
-    setExtractedText(text)
-    const analysis = DocumentEngine.analyzeText(text)
-    setResult(analysis)
-    setLoading(false)
+    setExtractError(null)
+    try {
+      const text = await DocumentEngine.extractText(file)
+      setExtractedText(text)
+      const analysis = DocumentEngine.analyzeText(text)
+      setResult(analysis)
+    } catch (err) {
+      setExtractError(err instanceof Error ? err.message : 'Failed to read this document.')
+      setExtractedText('')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleDemo = (type: 'safe' | 'kyc_scam' | 'lottery') => {
@@ -87,6 +95,13 @@ export default function DocumentScannerPage() {
               <FileText className="w-4 h-4" />
               Analyze Pasted Text
             </button>
+          )}
+
+          {extractError && (
+            <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-red-700">{extractError}</p>
+            </div>
           )}
 
           {/* Demo documents */}
@@ -198,7 +213,7 @@ export default function DocumentScannerPage() {
           </div>
 
           <button
-            onClick={() => { setResult(null); setExtractedText('') }}
+            onClick={() => { setResult(null); setExtractedText(''); setExtractError(null) }}
             className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 mx-auto"
           >
             <RefreshCcw className="w-4 h-4" />

@@ -4,8 +4,8 @@ import { useState } from 'react'
 import { RiskScoreCard } from '@/components/sentra/RiskScoreCard'
 import { FraudSignalCard } from '@/components/sentra/FraudSignalCard'
 import { RiskBreakdownChart } from '@/components/sentra/RiskBreakdownChart'
-import { DEMO_SUSPICIOUS_TRANSACTIONS, DEMO_FRAUD_EVENTS } from '@/lib/demo-data'
-import { getRiskLevelConfig, formatCurrency } from '@/lib/utils'
+import { useLivePoll } from '@/lib/hooks/useLivePoll'
+import { getRiskLevelConfig, formatCurrency, formatRelativeTime, scoreToRiskLevel } from '@/lib/utils'
 import { RiskLevel, EventSeverity } from '@/types'
 import {
   Activity,
@@ -115,8 +115,34 @@ const INTEL_CARDS: IntelCard[] = [
 export default function IntelligencePage() {
   const [selectedCard, setSelectedCard] = useState<IntelCard | null>(null)
 
-  const totalScore = 84
-  const totalRiskLevel: RiskLevel = 'high_risk'
+  const { data: eventsData } = useLivePoll<{
+    success: boolean
+    count: number
+    events: Array<{
+      id: string
+      eventType: string
+      description: string
+      riskScore: number
+      severity: RiskLevel
+      timestamp: string
+      acknowledged: boolean
+    }>
+  }>('/api/fraud-events?userId=demo-user&limit=10', 4000)
+
+  const { data: txData } = useLivePoll<{
+    success: boolean
+    count: number
+    transactions: Array<{
+      id: string
+      riskScore: number
+      riskLevel: RiskLevel
+    }>
+  }>('/api/transactions?userId=demo-user&limit=1', 4000)
+
+  const liveEvents = eventsData?.events ?? []
+  const latestTx = txData?.transactions?.[0]
+  const totalScore = latestTx ? latestTx.riskScore : (liveEvents[0]?.riskScore ?? 45)
+  const totalRiskLevel: RiskLevel = latestTx ? latestTx.riskLevel : (liveEvents[0]?.severity ?? scoreToRiskLevel(totalScore))
   const config = getRiskLevelConfig(totalRiskLevel)
 
   const chartData = INTEL_CARDS.map(c => ({
@@ -217,39 +243,52 @@ export default function IntelligencePage() {
 
       {/* Recent fraud events */}
       <div className="bg-white rounded-2xl border border-slate-200 p-5">
-        <h2 className="font-bold text-slate-800 mb-4">Recent Intelligence Events</h2>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="font-bold text-slate-800">Recent Intelligence Events</h2>
+            <p className="text-xs text-slate-500">Live security triggers from the database</p>
+          </div>
+          <span className="inline-flex items-center gap-1 text-[11px] font-medium bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full border border-emerald-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            Live Feed
+          </span>
+        </div>
         <div className="space-y-2">
-          {DEMO_FRAUD_EVENTS.map(event => {
-            const evtConfig = getRiskLevelConfig(event.severity)
-            return (
-              <div
-                key={event.id}
-                className={cn(
-                  'flex items-start gap-3 p-3 rounded-xl',
-                  event.acknowledged ? 'bg-slate-50' : cn(evtConfig.bg, evtConfig.border, 'border')
-                )}
-              >
-                <div className={cn('w-2 h-2 rounded-full mt-1.5 flex-shrink-0', evtConfig.dot)} />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className={cn('text-xs font-bold', evtConfig.color)}>
-                      {event.eventType.replace(/_/g, ' ').toUpperCase()}
-                    </span>
-                    <span className={cn('text-xs px-1.5 py-0.5 rounded font-semibold', evtConfig.badge)}>
-                      Risk {Math.round(event.riskScore)}
-                    </span>
-                    {!event.acknowledged && (
-                      <span className="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded">Unread</span>
-                    )}
+          {liveEvents.length === 0 ? (
+            <p className="text-xs text-slate-400 py-4 text-center">No intelligence events recorded yet.</p>
+          ) : (
+            liveEvents.map(event => {
+              const evtConfig = getRiskLevelConfig(event.severity)
+              return (
+                <div
+                  key={event.id}
+                  className={cn(
+                    'flex items-start gap-3 p-3 rounded-xl transition-all',
+                    event.acknowledged ? 'bg-slate-50' : cn(evtConfig.bg, evtConfig.border, 'border')
+                  )}
+                >
+                  <div className={cn('w-2 h-2 rounded-full mt-1.5 flex-shrink-0', evtConfig.dot)} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className={cn('text-xs font-bold', evtConfig.color)}>
+                        {event.eventType.replace(/_/g, ' ').toUpperCase()}
+                      </span>
+                      <span className={cn('text-xs px-1.5 py-0.5 rounded font-semibold', evtConfig.badge)}>
+                        Risk {Math.round(event.riskScore)}
+                      </span>
+                      {!event.acknowledged && (
+                        <span className="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-medium">Unread</span>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-600 mt-0.5">{event.description}</p>
                   </div>
-                  <p className="text-xs text-slate-600 mt-0.5">{event.description}</p>
+                  <span className="text-xs text-slate-400 flex-shrink-0">
+                    {formatRelativeTime(event.timestamp)}
+                  </span>
                 </div>
-                <span className="text-xs text-slate-400 flex-shrink-0">
-                  {event.timestamp.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
-                </span>
-              </div>
-            )
-          })}
+              )
+            })
+          )}
         </div>
       </div>
 

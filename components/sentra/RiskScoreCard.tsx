@@ -63,7 +63,7 @@ export function RiskScoreCard({
       )}
       
       {showArc ? (
-        <div className="relative" style={{ width: sizeDim, height: sizeDim * 0.75 }}>
+        <div className="relative" style={{ width: sizeDim, height: sizeDim }}>
           <svg
             width={sizeDim}
             height={sizeDim}
@@ -96,7 +96,7 @@ export function RiskScoreCard({
             />
           </svg>
           {/* Score text */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ paddingBottom: '25%' }}>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span
               className={cn(
                 'font-bold tabular-nums',

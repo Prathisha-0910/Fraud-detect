@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -15,7 +15,7 @@ model User {
   name               String
   email              String          @unique
   passwordHash       String?
-  safetyPreferences  Json?           @default("{}")
+  safetyPreferences  String?         @default("{}")
   riskBaseline       Float           @default(0)
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
@@ -38,6 +38,7 @@ model Transaction {
   timestamp       DateTime       @default(now())
   transactionType String         @default("upi")
   status          String         @default("completed")
+  pausedUntil     DateTime?
   // Context signals
   suspiciousCall  Boolean        @default(false)
   urgentMessage   Boolean        @default(false)
@@ -65,7 +66,8 @@ model FraudEvent {
   userId        String
   transactionId String?
   eventType     String      // velocity_alert, pattern_detected, intervention, guardian_alert, etc.
-  metadata      Json        @default("{}")
+  description   String?
+  metadata      String      @default("{}")
   riskScore     Float       @default(0)
   severity      String      @default("info") // info, caution, suspicious, high_risk, critical
   timestamp     DateTime    @default(now())
@@ -97,7 +99,7 @@ model RiskAssessment {
   confidence      Float       @default(0)
   intervention    String      @default("allow")
   explanation     String
-  detectedSignals Json        @default("[]")
+  detectedSignals String      @default("[]")
   createdAt       DateTime    @default(now())
   
   user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
